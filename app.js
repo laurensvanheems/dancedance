@@ -23,6 +23,11 @@ io.on('connection', function(client){
     client.emit('add move', move);
   });
 
+  client.on('user disconnect', function(){
+    client.broadcast.emit('user disconnect');
+    client.emit('user disconnect');
+  });
+
 });
 
 server.listen(8080);

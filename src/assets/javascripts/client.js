@@ -2,6 +2,7 @@ $(function(){
 
   var server = io.connect();
 
+  // Count players on server, not on client!
   var gameStarted = false,
       amountPlayers = 0;
 
@@ -50,7 +51,17 @@ $(function(){
       $('.objects').append(key + '<br/>');
     });
 
+    server.on('disconnect', function(){
+      server.emit('user disconnect');
+    });
+
+    server.on('user disconnect', function(){
+      amountPlayers--;
+      gameStarted = false;
+    });
+
   });
+
 
   $('.name__input').on('keydown', function(){
     $(this).removeClass('error');
