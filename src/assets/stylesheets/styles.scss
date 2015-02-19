@@ -1,0 +1,161 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: #267ec1;
+  background: linear-gradient(45deg, rgba(111,85,170,0.9) 0%,rgba(211,84,84,0.9) 100%);
+  font-family: helvetica, arial, sans-serif;
+  font-weight: 300;
+  color: #fff;
+  text-align: center;
+}
+
+.main-title {
+  width: 100%;
+  color: #fff;
+  font-weight: 100;
+  font-size: 60px;
+  margin-top: 60px;
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+
+.player-form__input {
+  width: 90%;
+  max-width: 500px;
+  padding: 4px 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid #fff;
+  color: #fff;
+  font-size: 50px;
+  font-weight: 100;
+  font-family: helvetica, arial, sans-serif;
+  outline: none;
+  text-align: center;
+}
+
+.game {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 800px;
+  margin-top: -400px;
+}
+
+.game__objective {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  margin-top: -37px;
+  width: 74px;
+  height: 74px;
+  border-radius: 100%;
+  background: rgba(255,255,255,0.2);
+  opacity: 0;
+  perspective: 600px;
+  -webkit-animation: movekey 1s linear 0s;
+  animation: movekey 1s linear 0s;
+}
+
+.game__objective__arrow {
+  position: absolute;
+  left: 14px;
+  top: -7px;
+  color: #fff;
+  font-size: 74px;
+
+}
+
+.game__objective.correct {
+  background: #33cc33;
+}
+
+.game__objective.incorrect {
+  background: #d11919;
+}
+
+.game__objective--left  { margin-left: -170px; }
+.game__objective--up    { margin-left: -80px; }
+.game__objective--down  { margin-left: 10px; }
+.game__objective--right { margin-left: 100px; }
+
+.game__objective--left .game__objective__arrow  { left: 20px; top: -2px; }
+.game__objective--up .game__objective__arrow    { left: 14px; top: -5px; }
+.game__objective--down .game__objective__arrow  { left: 13px; top: 0; }
+.game__objective--right .game__objective__arrow { left: 27px; top: -2px; }
+
+.game__answers {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 354px;
+  margin: -37px 0 0 -177px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.game__answers__arrow {
+  position: relative;
+  color: #fff;
+  font-size: 74px;
+  margin: 0 24px;
+}
+
+.game__answers__arrow--press {
+  transform: scale(1.2);
+}
+
+.game__answers__arrow--left  { left: 3px; top: -2px; }
+.game__answers__arrow--up    { left: 8px; top: -3px; }
+.game__answers__arrow--down  { left: -3px; top: 0px; }
+.game__answers__arrow--right { left: 1px; top: -2px; }
+
+
+
+@-webkit-keyframes movekey {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(150px);
+  }
+  82% {
+    opacity: 1;
+    transform: translateY(500px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(640px);
+  }
+}
+
+@keyframes movekey {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(150px);
+  }
+  82% {
+    opacity: 1;
+    transform: translateY(500px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(640px);
+  }
+}

@@ -1,6 +1,7 @@
 <html>
 <head>
 
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   <link href="/assets/stylesheets/styles.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -8,27 +9,35 @@
 
   <section class="view active" data-view="start">
 
-    <h1>Name?</h1>
+    <h1 class="main-title">What's your name?</h1>
 
-    <form class="name">
-      <input class="name__input">
-      <input type="submit" value="send" class="name__submit">
+    <form class="player-form js-player-form">
+      <input class="player-form__input js-player-form__input">
     </form>
 
   </section>
 
   <section class="view" data-view="wait">
 
-    <h1>Wait for players</h1>
+    <h1 class="main-title">Waiting for players...</h1>
 
   </section>
 
   <section class="view" data-view="game">
 
-    <h1>Game</h1>
+    <div class="game">
 
-    <div class="objects"></div>
-    <div class="line"></div>
+      <div class="objectives"></div>
+
+      <div class="game__answers">
+        <i class="game__answers__arrow game__answers__arrow--left fa fa-angle-left"></i>
+        <i class="game__answers__arrow game__answers__arrow--up fa fa-angle-up"></i>
+        <i class="game__answers__arrow game__answers__arrow--down fa fa-angle-down"></i>
+        <i class="game__answers__arrow game__answers__arrow--right fa fa-angle-right"></i>
+      </div>
+
+    </div>
+
 
   </section>
 

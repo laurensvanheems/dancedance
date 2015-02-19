@@ -1,7 +1,9 @@
 var server = io.connect(),
     moves = [],
-    responseTime = 1000,
-    range = 200,
+    responseTime = 600,
+    range = 50,
+    moveTimer = 200,
+    moveAvailable = true,
     player;
 
 function init() {
@@ -16,12 +18,12 @@ function init() {
 function onSocketConnect() {
   console.log('Server connected');
 
-  $('.name').on('submit', function(e){
+  $('.js-player-form').on('submit', function(e){
     e.preventDefault();
-    var name = $('.name__input').val();
+    var name = $('.js-player-form__input').val();
 
     if(name == '') {
-      $('.name__input').addClass('error');
+      $('.js-player-form__input').addClass('error');
       return;
     }
 
@@ -30,12 +32,20 @@ function onSocketConnect() {
     $('.view[data-view="wait"]').addClass('active');
   });
 
-  $('.name__input').on('keydown', function(){
+  $('.js-player-form__input').on('keydown', function(){
     $(this).removeClass('error');
   });
 
   $(document).on('keydown', function(e){
-    server.emit('add move', e.keyCode);
+    if(player) {
+      if(player.role === 0 && moveAvailable === true || player.role === 1) {
+        server.emit('add move', e.keyCode);
+        moveAvailable = false;
+        setTimeout(function(){
+          moveAvailable = true;
+        }, moveTimer);
+      }
+    }
   });
 
 }
@@ -106,29 +116,43 @@ function onNewMove(data) {
 
 function onLeaderMove(key) {
   var moveTime = Date.now() + responseTime,
-      moveHtml = $('<figure class="key" data-time="'+moveTime+'">'+key+'</figure>');
+      moveObject,
+      moveHtml = '<figure class="game__objective game__objective--'+key+'" data-time="'+moveTime+'">' +
+                 '<i class="game__objective__arrow fa fa-angle-'+key+'"></i></figure>';
 
-  console.log(moveTime);
   moves.push({time: moveTime, key: key});
 
-  $('.objects').append(moveHtml);
+  moveObject = $(moveHtml);
+  $('.objectives').append(moveObject);
 
   setTimeout(function(){
-    moveHtml.remove();
-    console.log(moves[0]);
     moves.splice(0, 1);
-  },2000);
+    if(!moveObject.hasClass('correct')) {
+      moveObject.addClass('incorrect');
+    }
+  }, (responseTime + moveTimer));
+
+  setTimeout(function(){
+    moveObject.remove();
+  },1000);
 }
 
 function onFollowerMove(key) {
+  $('.game__answers__arrow--' + key).addClass('game__answers__arrow--press');
+  setTimeout(function(){
+    $('.game__answers__arrow--' + key).removeClass('game__answers__arrow--press');
+  },100);
+
+  if(moves.length === 0) return;
+
   var followerTime = Date.now(),
       moveTime = moves[0].time,
       moveDiff = Math.abs(followerTime - moveTime);
 
-  console.log(moveDiff);
-
   if(moveDiff < range && key == moves[0].key) {
-    $('.key[data-time="'+moveTime+'"]').addClass('green');
+    $('.game__objective[data-time="'+moveTime+'"]').addClass('correct');
+  } else {
+    $('.game__objective[data-time="'+moveTime+'"]').addClass('incorrect');
   }
 
 }
