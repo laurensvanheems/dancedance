@@ -53,6 +53,7 @@ function onSocketConnect() {
 function onPlayer(data, start) {
   player = data;
   console.log(player);
+  alert('player');
 
   $('.view').removeClass('active');
   if(start === true) {
@@ -63,6 +64,7 @@ function onPlayer(data, start) {
 }
 
 function onNewPlayer(start) {
+  alert('new player');
   if(player) {
     $('.view').removeClass('active');
     if(start === true) {

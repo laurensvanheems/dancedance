@@ -4,11 +4,14 @@ var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
+var uuid = require('node-uuid');
+var Room = require('./room.js');
 
 
 /* Game Vars */
 
-var players = [];
+var players = {},
+    rooms = {};
 
 
 /* Game Initialisation */
@@ -44,20 +47,58 @@ function onSocketConnection(client) {
 }
 
 function onPlayerJoin(name) {
-  var newPlayer = {id: this.id, name: name, role: 0},
-      readyToStart = false;
 
-  if(players.length === 1) {
-    newPlayer.role = 1;
+  console.log(players.length);
+  if(players.length < 2) {
+    this.join('room1');
+    this.room = 'room1';
+    console.log('room1');
+  } else {
+    this.join('room2');
+    this.room = 'room2';
+    console.log('room2');
   }
 
-  players.push(newPlayer);
-  if(players.length === 2) {
-    readyToStart = true;
+  var readyToStart = false,
+      playerRole = 0,
+      roomId;
+
+  if(!rooms.length) {
+    //create room
+    roomId = createNewRoom(this);
+
+  } else if(rooms[(rooms.length -1)].players.length == 2) {
+    //create room
+    roomId = createNewRoom(this);
+
+  } else {
+    //join room
+    roomId = rooms[(rooms.length -1)].id;
   }
 
-  this.emit('player', newPlayer, readyToStart);
-  this.broadcast.emit('new player', readyToStart);
+  console.log(rooms);
+  console.log(roomId);
+
+  // if(players.length === 1) {
+  //   newPlayer.role = 1;
+  // }
+
+  // players.push(newPlayer);
+  // if(players.length === 2) {
+  //   readyToStart = true;
+  // }
+
+  // this.emit('player', newPlayer, readyToStart);
+  // this.to(this.room).broadcast.emit('new player', readyToStart);
+}
+
+function createNewRoom(player) {
+  var room,
+      id = uuid.v4();
+
+  room = new Room(id, player.id);
+  rooms[id] = room;
+  return id;
 }
 
 function onPlayerMove(data) {
