@@ -9,9 +9,16 @@
 
   <section class="view active" data-view="start">
 
-    <h1 class="main-title">What's your name?</h1>
+    <h1 class="main-title">Dance Dance</h1>
+
+    <button class="button js-create-game">Create Game</button>
+    <button class="button js-join-game">Join Game</button>
+    <button class="button js-master-game" disbaled>Join Master Game</button>
 
     <form class="player-form js-player-form">
+      <h2 class="sub-title">Code</h2>
+      <input class="player-form__input js-player-form__gamecode">
+      <h2 class="sub-title">Player name</h2>
       <input class="player-form__input js-player-form__input">
     </form>
 
@@ -20,6 +27,7 @@
   <section class="view" data-view="wait">
 
     <h1 class="main-title">Waiting for players...</h1>
+    <h2 class="sub-title">Code: <span class="js-game-code"></span></h2>
 
   </section>
 

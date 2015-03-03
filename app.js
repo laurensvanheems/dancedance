@@ -5,6 +5,7 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var uuid = require('node-uuid');
+var _ = require('underscore')._;
 var Room = require('./room.js');
 
 
@@ -37,105 +38,138 @@ function setEventHandlers() {
 }
 
 function onSocketConnection(client) {
-
   client.on('join', onPlayerJoin);
-
   client.on('add move', onPlayerMove);
-
   client.on('disconnect', onPlayerDisconnect);
-
 }
 
-function onPlayerJoin(name) {
+function onPlayerJoin(name, gametype, roomCode) {
 
-  console.log(players.length);
-  if(players.length < 2) {
-    this.join('room1');
-    this.room = 'room1';
-    console.log('room1');
-  } else {
-    this.join('room2');
-    this.room = 'room2';
-    console.log('room2');
+  players[this.id] = {
+    id: this.id,
+    name: name,
+    roomId: null,
+    role: 0
   }
 
-  var readyToStart = false,
-      playerRole = 0,
-      roomId;
-
-  if(!rooms.length) {
-    //create room
-    roomId = createNewRoom(this);
-
-  } else if(rooms[(rooms.length -1)].players.length == 2) {
-    //create room
-    roomId = createNewRoom(this);
-
-  } else {
-    //join room
-    roomId = rooms[(rooms.length -1)].id;
+  switch(gametype) {
+    case 'master':
+      // Join / create master game
+      break;
+    case 'join-private':
+      joinPrivateRoom(this, players[this.id], roomCode);
+      break;
+    case 'create-private':
+      createPrivateRoom(this, players[this.id]);
+      break;
   }
-
-  console.log(rooms);
-  console.log(roomId);
-
-  // if(players.length === 1) {
-  //   newPlayer.role = 1;
-  // }
-
-  // players.push(newPlayer);
-  // if(players.length === 2) {
-  //   readyToStart = true;
-  // }
-
-  // this.emit('player', newPlayer, readyToStart);
-  // this.to(this.room).broadcast.emit('new player', readyToStart);
 }
 
-function createNewRoom(player) {
+function createPrivateRoom(socket, player) {
   var room,
-      id = uuid.v4();
+      id = uuid.v4(),
+      roomCode = createRoomCode();
 
-  room = new Room(id, player.id);
+  room = new Room(id, player.id, roomCode);
   rooms[id] = room;
-  return id;
+
+  players[player.id].roomId = id;
+  socket.join(id);
+
+  socket.emit('private game', player, rooms[id]);
 }
 
-function onPlayerMove(data) {
-  if(players.length !== 2) {
-    return;
-  }
+function joinPrivateRoom(socket, player, roomCode) {
+  var roomId = getRoomId(parseInt(roomCode,10));
 
-  var move = {id: this.id, key: data, role: playerById(this.id).role};
+  player.role = 1;
+  players[player.id].role = 1;
+  players[player.id].roomId = roomId;
+  rooms[roomId].players.push(player.id);
+  socket.join(roomId);
+
+  socket.emit('private game', player, rooms[roomId]);
+  socket.to(roomId).broadcast.emit('private game', player, rooms[roomId]);
+}
+
+function onPlayerMove(player, keycode) {
+  var move = {id: player.id, key: keycode, role: player.role};
 
   this.emit('add move', move);
-  this.broadcast.emit('add move', move);
+  this.to(player.roomId).broadcast.emit('add move', move);
 
 }
 
 function onPlayerDisconnect() {
   console.log('lost connection');
+  console.log(players);
+  console.log(rooms);
+  if(_.size(players) == 0) {
+    return;
+  }
 
-  var removePlayer = playerById(this.id);
+  var player = players[this.id],
+      room = rooms[player.roomId],
+      cancelGame = false;
 
   // Player not found
-  if (!removePlayer) {
+  if (!player) {
     console.log("Player not found: "+this.id);
     return;
   };
 
+  if(room.owner == player.id) {
+    console.log('remove room');
+    cancelGame = true;
+    //removeRoom();
+  }
+
+  room.players.splice(room.players.indexOf(player.id), 1);
+
+  if(room.players.length < room.minPlayers) {
+    cancelGame = true;
+  }
+
   // Remove player from players array
-  players.splice(players.indexOf(removePlayer), 1);
+  delete players[this.id]
+
+  console.log(players);
+  console.log(rooms);
 
   // Broadcast removed player to connected socket clients
-  if(players.length !== 2) {
-    this.broadcast.emit('end game');
+  if(cancelGame === true) {
+    console.log('end game');
+    this.to(player.roomId).broadcast.emit('end game');
   }
 
 }
 
 
 /* Helper functions */
+
+function createRoomCode() {
+  var roomCode = Math.round(Math.random() * 10000);
+
+  _.find(rooms, function(key, value) {
+    if (key.roomCode === roomCode) {
+      createRoomCode();
+    }
+  });
+
+  return roomCode;
+}
+
+function getRoomId(roomCode) {
+  var roomId = -1;
+
+  _.find(rooms, function(key, value) {
+    if (key.roomCode === roomCode) {
+      roomId = key.id;
+    }
+  });
+
+  return roomId;
+}
 
 function playerById(id) {
   var i;

@@ -7,39 +7,51 @@ var server = io.connect(),
     player;
 
 function init() {
-  server.on('connect', onSocketConnect);
-  server.on('player', onPlayer);
-  server.on('new player', onNewPlayer);
-  server.on('start game', onStartGame);
+  server.on('connect', menuUI);
+  server.on('private game', onCreatePrivateGame);
   server.on('end game', onEndGame);
   server.on('add move', onNewMove);
 }
 
-function onSocketConnect() {
+function menuUI() {
   console.log('Server connected');
 
   $('.js-player-form').on('submit', function(e){
     e.preventDefault();
-    var name = $('.js-player-form__input').val();
+    onMenuClick('master');
+  });
 
-    if(name == '') {
-      $('.js-player-form__input').addClass('error');
+  $('.js-master-game').on('click', function(){
+    onMenuClick('master');
+  });
+
+  $('.js-create-game').on('click', function(){
+    onMenuClick('create-private');
+  });
+
+  $('.js-join-game').on('click', function(){
+    var gameCode = $('.js-player-form__gamecode').val();
+
+    if(gameCode == '') {
+      $('.js-player-form__gamecode').addClass('error');
+      alert('Fill in your game code');
       return;
     }
 
-    server.emit('join', name);
-    $('.view').removeClass('active');
-    $('.view[data-view="wait"]').addClass('active');
+    onMenuClick('join-private', gameCode);
   });
 
   $('.js-player-form__input').on('keydown', function(){
     $(this).removeClass('error');
   });
 
+}
+
+function bindGameEvents() {
   $(document).on('keydown', function(e){
     if(player) {
       if(player.role === 0 && moveAvailable === true || player.role === 1) {
-        server.emit('add move', e.keyCode);
+        server.emit('add move', player, e.keyCode);
         moveAvailable = false;
         setTimeout(function(){
           moveAvailable = true;
@@ -47,6 +59,37 @@ function onSocketConnect() {
       }
     }
   });
+}
+
+function onMenuClick(gametype, gameCode) {
+  var name = $('.js-player-form__input').val();
+
+  if(name == '') {
+    $('.js-player-form__input').addClass('error');
+    alert('Fill in your name first');
+    return;
+  }
+
+  server.emit('join', name, gametype, gameCode);
+  $('.view').removeClass('active');
+  $('.view[data-view="wait"]').addClass('active');
+}
+
+function onCreatePrivateGame(playerData, room) {
+  console.log(playerData);
+  console.log(room);
+
+  if(!player) {
+    player = playerData;
+  }
+
+  $('.js-game-code').text(room.roomCode);
+
+  if(room.players.length >= room.minPlayers) {
+    $('.view').removeClass('active');
+    $('.view[data-view="game"]').addClass('active');
+    bindGameEvents();
+  }
 
 }
 

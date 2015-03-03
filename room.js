@@ -1,8 +1,9 @@
-function Room(id, owner) {
+function Room(id, playerId, roomCode) {
   this.id = id;
-  this.owner = owner;
-  this.players = [];
-  this.playerLimit = 2;
+  this.owner = playerId;
+  this.players = [playerId];
+  this.minPlayers = 2;
+  this.roomCode = roomCode;
   this.status = "available";
   this.private = false;
 };
