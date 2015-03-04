@@ -9,7 +9,8 @@ var server = io.connect(),
 function init() {
   server.on('connect', menuUI);
   server.on('private game', onCreatePrivateGame);
-  server.on('end game', onEndGame);
+  server.on('end private game', onEndPrivateGame);
+  server.on('idle private game', onIdlePrivateGame);
   server.on('add move', onNewMove);
 }
 
@@ -93,41 +94,15 @@ function onCreatePrivateGame(playerData, room) {
 
 }
 
-function onPlayer(data, start) {
-  player = data;
-  console.log(player);
-  alert('player');
-
+function onEndPrivateGame() {
   $('.view').removeClass('active');
-  if(start === true) {
-    $('.view[data-view="game"]').addClass('active');
-  } else {
-    $('.view[data-view="wait"]').addClass('active');
-  }
+  $('.view[data-view="start"]').addClass('active');
+  $('input').val('');
 }
 
-function onNewPlayer(start) {
-  alert('new player');
-  if(player) {
-    $('.view').removeClass('active');
-    if(start === true) {
-      $('.view[data-view="game"]').addClass('active');
-    } else {
-      $('.view[data-view="wait"]').addClass('active');
-    }
-  }
-}
-
-function onStartGame(data) {
+function onIdlePrivateGame() {
   $('.view').removeClass('active');
-  $('.view[data-view="game"]').addClass('active');
-}
-
-function onEndGame(data) {
-  if(!$('.view[data-view="start"]').hasClass('active')) {
-    $('.view').removeClass('active');
-    $('.view[data-view="wait"]').addClass('active');
-  }
+  $('.view[data-view="wait"]').addClass('active');
 }
 
 function onNewMove(data) {

@@ -18,7 +18,6 @@ var players = {},
 /* Game Initialisation */
 
 function init() {
-
   app.use(express.static(__dirname + '/src'));
 
   app.get('/', function(req, res){
@@ -28,8 +27,8 @@ function init() {
   server.listen(8080);
 
   setEventHandlers();
-
 }
+
 
 /* Game events */
 
@@ -65,6 +64,50 @@ function onPlayerJoin(name, gametype, roomCode) {
   }
 }
 
+function onPlayerMove(player, keycode) {
+  var move = {id: player.id, key: keycode, role: player.role};
+
+  this.emit('add move', move);
+  this.to(player.roomId).broadcast.emit('add move', move);
+}
+
+function onPlayerDisconnect() {
+  if(_.size(players) == 0 || typeof players[this.id] == 'undefined' || players[this.id].roomId == null) {
+    return;
+  }
+
+  var player = players[this.id],
+      room = rooms[player.roomId];
+
+  // Player not found
+  if (!player) {
+    console.log("Player not found: "+this.id);
+    return;
+  };
+
+  if(room.owner == player.id) {
+    this.to(player.roomId).broadcast.emit('end private game');
+
+    for (var i = 0; i < room.players.length; i++) {
+      players[room.players[i]].roomId = null;
+    }
+
+    delete rooms[player.roomId];
+
+  } else {
+    room.players.splice(room.players.indexOf(player.id), 1);
+
+    if(room.players.length < room.minPlayers) {
+      this.to(player.roomId).broadcast.emit('idle private game');
+    }
+  }
+
+  delete players[this.id];
+}
+
+
+/* Room handling */
+
 function createPrivateRoom(socket, player) {
   var room,
       id = uuid.v4(),
@@ -90,58 +133,6 @@ function joinPrivateRoom(socket, player, roomCode) {
 
   socket.emit('private game', player, rooms[roomId]);
   socket.to(roomId).broadcast.emit('private game', player, rooms[roomId]);
-}
-
-function onPlayerMove(player, keycode) {
-  var move = {id: player.id, key: keycode, role: player.role};
-
-  this.emit('add move', move);
-  this.to(player.roomId).broadcast.emit('add move', move);
-
-}
-
-function onPlayerDisconnect() {
-  console.log('lost connection');
-  console.log(players);
-  console.log(rooms);
-  if(_.size(players) == 0) {
-    return;
-  }
-
-  var player = players[this.id],
-      room = rooms[player.roomId],
-      cancelGame = false;
-
-  // Player not found
-  if (!player) {
-    console.log("Player not found: "+this.id);
-    return;
-  };
-
-  if(room.owner == player.id) {
-    console.log('remove room');
-    cancelGame = true;
-    //removeRoom();
-  }
-
-  room.players.splice(room.players.indexOf(player.id), 1);
-
-  if(room.players.length < room.minPlayers) {
-    cancelGame = true;
-  }
-
-  // Remove player from players array
-  delete players[this.id]
-
-  console.log(players);
-  console.log(rooms);
-
-  // Broadcast removed player to connected socket clients
-  if(cancelGame === true) {
-    console.log('end game');
-    this.to(player.roomId).broadcast.emit('end game');
-  }
-
 }
 
 
@@ -171,15 +162,6 @@ function getRoomId(roomCode) {
   return roomId;
 }
 
-function playerById(id) {
-  var i;
-  for (i = 0; i < players.length; i++) {
-    if (players[i].id == id)
-      return players[i];
-  };
-
-  return false;
-};
-
 /* Start Game */
+
 init();
