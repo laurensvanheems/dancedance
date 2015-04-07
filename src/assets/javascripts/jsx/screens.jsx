@@ -5,8 +5,6 @@ var StartScreen = React.createClass({
     return (
       <section className="view active" data-view="start">
 
-        <h1 className="main-title">Dance Dance</h1>
-
         <button className="button js-create-game">Create Game</button>
         <button className="button js-join-game">Join Game</button>
 
@@ -52,7 +50,6 @@ var GameScreen = React.createClass({
           </div>
 
         </div>
-
 
       </section>
     );

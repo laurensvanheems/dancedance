@@ -5,8 +5,6 @@ var StartScreen = React.createClass({displayName: "StartScreen",
     return (
       React.createElement("section", {className: "view active", "data-view": "start"}, 
 
-        React.createElement("h1", {className: "main-title"}, "Dance Dance"), 
-
         React.createElement("button", {className: "button js-create-game"}, "Create Game"), 
         React.createElement("button", {className: "button js-join-game"}, "Join Game"), 
 
