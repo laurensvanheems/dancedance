@@ -24,6 +24,10 @@ function init() {
     res.sendFile(__dirname + '/src/views/index.html');
   });
 
+  app.get('/controls', function(req, res){
+    res.sendFile(__dirname + '/src/views/controls.html');
+  });
+
   server.listen(8080);
 
   setEventHandlers();
@@ -37,12 +41,30 @@ function setEventHandlers() {
 }
 
 function onSocketConnection(client) {
+  // Events from game
+  client.on('create room', createRoom);
+
+  // Events from controls
   client.on('join', onPlayerJoin);
   client.on('add move', onPlayerMove);
   client.on('disconnect', onPlayerDisconnect);
 }
 
-function onPlayerJoin(name, gametype, roomCode) {
+function createRoom() {
+
+  var room,
+      id = uuid.v4(),
+      roomCode = createRoomCode();
+
+  room = new Room(id, roomCode);
+  rooms[id] = room;
+
+  this.join(id);
+  this.emit('private game', rooms[id]);
+
+}
+
+function onPlayerJoin(name, roomCode) {
 
   players[this.id] = {
     id: this.id,
@@ -51,27 +73,20 @@ function onPlayerJoin(name, gametype, roomCode) {
     role: 0
   }
 
-  switch(gametype) {
-    case 'master':
-      // Join / create master game
-      break;
-    case 'join-private':
-      joinPrivateRoom(this, players[this.id], roomCode);
-      break;
-    case 'create-private':
-      createPrivateRoom(this, players[this.id]);
-      break;
-  }
+  joinPrivateRoom(this, players[this.id], roomCode);
 }
 
-function onPlayerMove(player, keycode) {
-  var move = {id: player.id, key: keycode, role: player.role};
+function onPlayerMove(player, keycode, type) {
+  var move = {id: player.id, key: keycode, role: player.role, type: type};
 
   this.emit('add move', move);
   this.to(player.roomId).broadcast.emit('add move', move);
 }
 
 function onPlayerDisconnect() {
+  // TODO
+
+
   if(_.size(players) == 0 || typeof players[this.id] == 'undefined' || players[this.id].roomId == null) {
     return;
   }
@@ -108,31 +123,15 @@ function onPlayerDisconnect() {
 
 /* Room handling */
 
-function createPrivateRoom(socket, player) {
-  var room,
-      id = uuid.v4(),
-      roomCode = createRoomCode();
-
-  room = new Room(id, player.id, roomCode);
-  rooms[id] = room;
-
-  players[player.id].roomId = id;
-  socket.join(id);
-
-  socket.emit('private game', player, rooms[id]);
-}
-
 function joinPrivateRoom(socket, player, roomCode) {
-  var roomId = getRoomId(parseInt(roomCode,10));
 
-  player.role = 1;
-  players[player.id].role = 1;
+  var roomId = getRoomId(parseInt(roomCode,10));
   players[player.id].roomId = roomId;
   rooms[roomId].players.push(player.id);
   socket.join(roomId);
 
-  socket.emit('private game', player, rooms[roomId]);
-  socket.to(roomId).broadcast.emit('private game', player, rooms[roomId]);
+  socket.emit('private game', rooms[roomId], player);
+  socket.to(roomId).broadcast.emit('private game', rooms[roomId], player);
 }
 
 

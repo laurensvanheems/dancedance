@@ -1,0 +1,38 @@
+* {
+  box-sizing: border-box; }
+
+body {
+  background: #267ec1;
+  background: -webkit-linear-gradient(45deg, rgba(111, 85, 170, 0.9) 0%, rgba(211, 84, 84, 0.9) 100%);
+  background: linear-gradient(45deg, rgba(111, 85, 170, 0.9) 0%, rgba(211, 84, 84, 0.9) 100%);
+  font-family: helvetica, arial, sans-serif;
+  font-weight: 300;
+  color: #fff;
+  text-align: left; }
+
+.main-title, .sub-title {
+  width: 100%;
+  color: #fff;
+  font-weight: 100;
+  font-size: 60px;
+  margin-top: 60px; }
+
+.sub-title {
+  font-size: 18px;
+  margin: 10px 0; }
+
+.game__meta {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 10px 15px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2); }
+
+.game__canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 1px solid white;
+  -webkit-transform: translate3d(-50%, -50%, 0);
+          transform: translate3d(-50%, -50%, 0); }
